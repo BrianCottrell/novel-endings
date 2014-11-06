@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>StoryApp5</title>
+  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <%= csrf_meta_tags %>
+</head>
+<body>
+  <div class='application'>
+    <% if current_user %>
+      <%= current_user.email %>
+      <%= link_to 'Sign Out', sessions_path, method: :delete %>
+    <% else %>
+      <%= link_to 'Sign In', new_session_path, method: :get %>
+      <%= link_to 'Sign Up', new_user_path, method: :get %>
+    <% end %>
+  </div>
+  <div class='container'>
+    <%= yield %>
+  </div>
+</body>
+</html>

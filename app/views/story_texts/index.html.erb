@@ -1,0 +1,98 @@
+<!-- Variables for Embedded Ruby -->
+<% line_length = 40 %>        <!-- Indicates the number of characters between line breaks -->
+<% full_story = "" %>         <!-- This will contain the full text of the story -->
+<% page = 1 %>                <!-- Specifies the current page number -->
+<% line = 0 %>                <!-- Specifies the current line number -->
+<% position = 0 %>            <!-- Specifies the character position within a line -->
+<% top = 0 %>                 <!-- Stores the vertical position for each character -->
+<% left = 0 %>                <!-- Stores the horizontal position for each character -->
+<% angle = 0 %>               <!-- Stores the rotation angle for each character -->
+<% line_offset = 0 %>         <!-- Stores the position at which to add each line break -->
+<% story_array = [] %>        <!-- Stores each individual character of the text in an array -->
+
+<!-- Combines all passages and adds them into the full story variable -->
+<% @story_texts.each do |story| %>
+    <% full_story = full_story+story.passage+' ' %>
+<% end %>
+
+<!-- Modifies and formats the story texts displays the resulting text -->
+<div class='story'>
+  <%= image_tag('open_pages_wShading2.png') %>
+  <% story_array = full_story.split('') %>                 <!-- Splits the string into an array of characters -->
+  <% line_offset+=line_length %>                           <!-- Sets the position for the first line break -->
+  <% (story_array.length/line_length+1).times do |lines| %><!-- For each line of text -->
+      <% while story_array[line_offset] != ' ' do %>       <!-- Make sure the break is inseted between words -->
+        <% line_offset -= 1 %>
+      <% end %>
+      <% story_array[line_offset] = '<br/>' %>             <!-- Inserts a line break at the end of the line -->
+      <% line_offset += line_length %>                     <!-- Set up for the next line -->
+  <% end %>
+  <% story_array.length.times do |letter| %>               <!-- For each character in the text -->
+    <% if story_array[letter] == ' ' %>                    <!-- Replace every space character -->
+      <% story_array[letter] = '&nbsp' %>                  <!-- With nbsp since the space doesn't show up -->
+    <% end %>
+    <% position += 1 %>
+    <% if story_array[letter] == '<br/>' %>
+      <% line += 1 %>
+      <% if line == 20 %>
+        <% page += 1 %>
+        <% line = 0 %>
+      <% end %>
+      <% position = 0 %>
+    <% end %>
+    <% if page == $page %>
+      <% left = position*9.5+52 %>
+      <% top = line*20+15*Math.sin(position*(2*Math::PI/line_length))+50 %>
+      <% angle = 12*Math.cos(position*(2*Math::PI/line_length)) %>
+    <% elsif page == $page+1 %>
+      <% left = position*9.5+447 %>
+      <% top = line*20+15*Math.sin(position*(2*Math::PI/line_length)+Math::PI)+50 %>
+      <% angle = 12*Math.cos(position*(2*Math::PI/line_length)+Math::PI) %>
+    <% end %>
+    <!-- Each charater is added to a div and displayed as story text here -->
+    <% if page == $page || page == $page+1 %>
+      <div class='letter' style='top:<%= top %>px; left:<%= left %>px; 
+      -webkit-transform: rotate(<%= angle %>deg); 
+      -ms-transform: rotate(<%= angle %>deg; 
+      -transform: rotate(<%= angle %>deg)'>
+        <%= raw story_array[letter] %>
+      </div>
+    <% end %>
+  <% end %>
+  <!-- Display page numbers -->
+  <div class='letter page-left'>
+    <%= $page %>
+  </div>
+  <div class='letter page-right'>
+    <%= $page+1 %>
+  </div>  
+  <!-- Invisible links for changing pages -->
+  <%= link_to ' ', story_texts_path(change_page:'next_page'), method: :get, :class => 'next' %>
+  <%= link_to '', story_texts_path(change_page:'previous_page'), method: :get, :class => 'previous' %>
+  <!-- Buttons and text area for adding a passage or removing the last entry -->
+  <% if current_user %>                                      <!-- Only show the following if a user logs in --> 
+    <!-- Adds a form for contributing to the story text -->
+    <%= @error_message.inspect %>
+    <%= form_for @story_text do |f| %>
+      <% if @story_text.errors.any? %>
+        <div id='error_explanation'>
+          <h2><%= pluralize(@story_text.errors.count, 'error') %> prohibited this user from being saved:</h2>
+          <ul>
+          <% @story_text.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+          </ul>
+        </div>
+      <% end %>
+      <div class='field'>
+        <%= f.text_area :passage, cols: 38, rows: 5 %>
+      </div>
+      <div class='actions'>
+        <%= f.submit 'Submit Text' %>
+      </div>
+    <% end %>
+    <% if @story_texts.length > 0 %>                         <!-- Make sure there is a passage to remove --> 
+      <%= button_to 'Remove last entry', @story_text, method: :delete %>
+    <% end %>                                                <!-- Before trying to remove one --> 
+  <% end %>
+</div>
