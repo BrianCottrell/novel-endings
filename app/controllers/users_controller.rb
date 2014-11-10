@@ -5,22 +5,16 @@ class UsersController < ApplicationController
     @users = User.all
   end
 
-  def show
-  end
-
   def new
     @user = User.new
     @is_login = true
-  end
-
-  def edit
   end
 
   def create
     @user = User.new(user_params)
     respond_to do |format|
       if @user.save
-        format.html { redirect_to story_texts_path, notice: 'User was successfully created.' }
+        format.html { redirect_to path_finder, notice: 'User was successfully created.' }
         format.json { render action: 'show', status: :created, location: @user }
         session[:user_id] = @user.id.to_s
       else
@@ -45,7 +39,7 @@ class UsersController < ApplicationController
   def destroy
     @user.destroy
     respond_to do |format|
-      format.html { redirect_to story_texts_path }
+      format.html { redirect_to path_finder }
       format.json { head :no_content }
     end
   end

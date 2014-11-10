@@ -1,4 +1,4 @@
-<h1>Sessions</h1>
+<h1>Sign In</h1>
 <%= form_for(@user, {url: sessions_path}) do |f| %>
   <% if @user.errors.any? %>
     <div id="error_explanation">
@@ -11,15 +11,14 @@
     </div>
   <% end %>
   <div class="field">
-    <%= f.label :email %><br>
+    <p>Author Name:</p>
     <%= f.text_field :email %>
   </div>
   <div class="field">
-    <%= f.label :password %><br>
+    <p>Password:</p>
     <%= f.password_field :password %>
   </div>
-  <div class="actions">
-    <%= f.submit 'Sign In' %>
-  </div>
+    <%= f.submit 'Sign In', :class =>'link-text' %>
 <% end %>
-<%= link_to 'Back', story_texts_path %>
+<br/>
+<%= link_to 'Back', path_finder, :class =>'link-text back' %>

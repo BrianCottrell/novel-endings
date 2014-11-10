@@ -3,7 +3,6 @@ Rails.application.routes.draw do
   #User routes, users can be created edited or removed
   get     'users/',           to: 'users#index',   as: :users
   get     'users/new',        to: 'users#new',     as: :new_user
-  get     'users/:id',        to: 'users#show',    as: :user
   post    'users/',           to: 'users#create'    
   get     'users/:id/edit',   to: 'users#edit',    as: :edit_user
   patch   'users/:id',        to: 'users#update'
@@ -13,18 +12,39 @@ Rails.application.routes.draw do
   get     'sessions/new', to: 'sessions#new',     as: :new_session
   post    'sessions/',    to: 'sessions#create'
   delete  'sessions',     to: 'sessions#destroy', as: :session
-    
-  #Story text routes, users that are signed in can add to the story
-  get     'story_texts/',         to: 'story_texts#index',as: :story_texts
-  post    'story_texts/',         to: 'story_texts#create'
-  get     'story_texts/new',      to: 'story_texts#new',  as: :new_story_text
-  get     'story_texts/:id',      to: 'story_texts#show', as: :story_text 
-  get     'story_texts/:id/edit', to: 'story_texts#edit', as: :edit_story_text
-  patch   'story_texts/:id',      to: 'story_texts#update'
-  delete  'story_texts/',         to: 'story_texts#destroy'    
+  
+  #First story text routes, users that are signed in can add to the story
+  get     'first_story_texts/',         to: 'first_story_texts#index',as: :first_story_texts
+  post    'first_story_texts/',         to: 'first_story_texts#create'
+  patch   'first_story_texts/:id',      to: 'first_story_texts#update'
+  delete  'first_story_texts/',         to: 'first_story_texts#destroy'    
+  
+  #Second story text routes, users that are signed in can add to the story
+  get     'second_story_texts/',         to: 'second_story_texts#index',as: :second_story_texts
+  post    'second_story_texts/',         to: 'second_story_texts#create'
+  patch   'second_story_texts/:id',      to: 'second_story_texts#update'
+  delete  'second_story_texts/',         to: 'second_story_texts#destroy'    
+  
+  #Third Story text routes, users that are signed in can add to the story
+  get     'third_story_texts/',         to: 'third_story_texts#index',as: :third_story_texts
+  post    'third_story_texts/',         to: 'third_story_texts#create'
+  patch   'third_story_texts/:id',      to: 'third_story_texts#update'
+  delete  'third_story_texts/',         to: 'third_story_texts#destroy' 
+  
+  #Fourth Story text routes, users that are signed in can add to the story
+  get     'fourth_story_texts/',         to: 'fourth_story_texts#index',as: :fourth_story_texts
+  post    'fourth_story_texts/',         to: 'fourth_story_texts#create'
+  patch   'fourth_story_texts/:id',      to: 'fourth_story_texts#update'
+  delete  'fourth_story_texts/',         to: 'fourth_story_texts#destroy'    
+  
+  #Fifth story text routes, users that are signed in can add to the story
+  get     'fifth_story_texts/',         to: 'fifth_story_texts#index',as: :fifth_story_texts
+  post    'fifth_story_texts/',         to: 'fifth_story_texts#create'
+  patch   'fifth_story_texts/:id',      to: 'fifth_story_texts#update'
+  delete  'fifth_story_texts/',         to: 'fifth_story_texts#destroy'   
     
   #The site begans on this page
-  root 'story_texts#index'
+  root ['first', 'second', 'third', 'fourth', 'fifth'].shuffle.first+'_story_texts#index'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

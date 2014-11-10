@@ -9,7 +9,7 @@ class SessionsController < ApplicationController
 		u = User.where(email: params[:user][:email]).first
 		if u && u.authenticate(params[:user][:password])
 			session[:user_id] = u.id.to_s
-			redirect_to story_texts_path
+			redirect_to path_finder
 		else
 			# Go back to the login page
 			redirect_to new_session_path
@@ -18,6 +18,6 @@ class SessionsController < ApplicationController
 
 	def destroy
 		reset_session
-		redirect_to story_texts_path
+		redirect_to path_finder
 	end
 end

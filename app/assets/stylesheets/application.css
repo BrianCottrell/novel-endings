@@ -13,16 +13,42 @@
  *= require_tree .
  *= require_self
  */
-.application{
-    position: absolute;
-    margin-left: 75%;
-    z-index: 1;
+body{
+    background-color: #CDC;
 }
-.container{
+.application{
     position: relative;
-	width: 900px;
+	width: 850px;
 	margin: 0 auto;
-	background-color: #ACF;
+	background-color: #4B4;
+	font-family: helvetica;
+    font-size: 18px;
+    color: #030;
+    border-radius: 5px;
+}
+.title{
+    position: absolute;
+    margin-left: 30px;
+    font-family: helvetica;
+    font-size: 32px;
+    color: #040;    
+}
+.user-status{
+    position: absolute;
+    margin-left: 620px;
+    margin-top: 10px;
+    font-family: helvetica;
+    font-size: 16px;
+    color: #030;
+}
+.link-text{
+    display: inline;
+    color: #020;
+    text-decoration: none;
+    background-color: #393;
+    border: 1px solid #020;
+    border-radius: 5px;
+    padding: 5px;
 }
 .story{
     position: absolute;
@@ -33,6 +59,7 @@
     display: inline;
     font-family: Fixed, monospace;
     font-size: 16px;
+    color: #000;    
 }
 .page-left{
     top: 455px;
@@ -63,4 +90,37 @@
     top: 30px;
     left: 20px;
     z-index: 1;
+}
+.first{
+    position: absolute;
+    top: 525px;
+    left: 30px;
+    color: #030;
+    text-decoration: none;    
+}
+.last{
+    position: absolute;
+    top: 525px;
+    left: 830px;
+    color: #030;
+    text-decoration: none;    
+}
+.passage{
+    position: absolute;
+    top: 550px;
+    left: 30px;
+}
+.submit{
+    position: absolute;
+    top: 570px;
+    left: 380px;
+}
+.delete{
+    position: absolute;
+    top: 610px;
+    left: 380px;
+}
+.back{
+    padding-bottom: 0px;
+    margin-left: 2px;    
 }

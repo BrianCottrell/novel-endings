@@ -1,39 +1,44 @@
-class StoryTextsController < ApplicationController
+class FirstStoryTextsController < ApplicationController
   $page = 1
+  $update_post_time = false
+  $update_delete_time = false
   $error_message = 'Enter your passage here:'
   
   #Shows the entire story text by including all entries
   def index
-    @story_texts = StoryText.all
-    @story_text = StoryText.new
+    @first_story_texts = FirstStoryText.all
+    @first_story_text = FirstStoryText.new
     @error_message = $error_message
-    if params[:change_page] == 'next_page'
-      $page += 2;
-      params[:change_page] = 'current page'
+    if !params[:change_page]
+      params[:change_page] = 'current'
     end
-    if params[:change_page] == 'previous_page' && $page > 1
-      $page -= 2;
-      params[:change_page] = 'current page'
-    end
-  end
-  #Finds a single entry with the specified id
-  def show
-    @story_text = StoryText.find(params[:id])
-  end
-  
-  #Creates a new instance of a story text entry
-  def new
-    @story_text = StoryText.new  
-  end
-  
-  #Finds an entry to be edited
-  def edit
-    @story_text = StoryText.find(params[:id])
+    if params[:change_page] != 'current'
+      if params[:change_page] == 'next'
+        $page += 2;
+      elsif params[:change_page] == 'previous' && $page > 1
+        $page -= 2;
+      elsif params[:change_page] == 'first'
+        $page = 1;
+      else
+        $page = params[:change_page].to_i
+      end
+      params[:change_page] = 'current'
+    end  
+    if $update_post_time
+      current_user.first_post_timer = Time.now.to_i
+      current_user.update()
+      $update_post_time = false
+    elsif $update_delete_time
+      current_user.delete_timer = Time.now.to_i
+      current_user.update()
+      $update_delete_time = false
+    end    
   end
   
   #Posts a newly created instance of a story text to the server
   def create
-    @story_text = StoryText.new(params.require(:story_text).permit(:passage))
+    @first_story_text = FirstStoryText.new(params.require(:first_story_text).permit(:passage))
+    @first_story_text.author = current_user.email
     #Filter the text so that only valid passages are added to the story
     #Variables used within the filter
     @valid = true                                               #This must be true if a passage is to be included
@@ -49,10 +54,13 @@ class StoryTextsController < ApplicationController
     @invalid_words = [[102,117,99,107],                         #Lists invalid words
                       [112,101,110,105,115],
                       [118,97,103,105,110,97],
-                      [115,101,120]]
+                      [115,101,120],
+                      [110,105,103,103,101,114],
+                      [102,97,103,103,111,116]]
+    @required_words = ['Tom','April','Eloise','George','Joyce','Owlen']
     $error_message = 'Enter your passage here:'                  
-    #Filter process starts here                  
-    @story_text.passage.bytes.each do |character|               #Check to makes sure each character is valid
+    #Filter process starts here
+    @first_story_text.passage.bytes.each do |character|             #Check to makes sure each character is valid
       @valid_character = false                                  #Reject characters that are not letters or numbers
       if character >= 65 && character <= 122 || character >= 48 && character <= 57
         @valid_character = true                                 #Accept all numbers and letters
@@ -88,56 +96,72 @@ class StoryTextsController < ApplicationController
       end
       @previous_character = character
     end
-    if @story_text.passage.bytes.first < 65 || @story_text.passage.bytes.first > 90
-      @valid = false                                            #Each passage must begin with a capital letter
-      $error_message = 'Make sure to began your sentences with a capital letter'
-    end
-    if ![33,34,46,63].include? @story_text.passage.bytes.last
+    if ![33,34,46,63].include? @first_story_text.passage.bytes.last
       @valid = false                                            #Each passage must end with correct punctuation
       $error_message = 'Make sure to end your sentences with correct punctuation'
-      @invalid_words.each do |word|                             #Check to see if any invalid words are included
-        if @story_text.passage.bytes.each_cons(word.length).include? word
-          @valid = false                                        #If they are, reject passage
-          $error_message = 'Please clean up your entry'
+    end
+    if @first_story_text.passage.bytes.first
+      if @first_story_text.passage.bytes.first < 65 || @first_story_text.passage.bytes.first > 90
+        @valid = false                                          #Each passage must begin with a capital letter
+        $error_message = 'Make sure to began your sentences with a capital letter'
+      end
+    end
+    @invalid_words.each do |word|                             #Check to see if any invalid words are included
+      if @first_story_text.passage.bytes.each_cons(word.length).include? word
+        @valid = false                                        #If they are, reject passage
+        $error_message = 'Please clean up your entry'
+      end
+    end
+    if @valid
+      @valid = false
+      @required_words.each do |word|
+        if @first_story_text.passage.bytes.each_cons(word.length).include? word.bytes
+          @valid = true
         end
       end
-    end 
+      if !@valid
+        $error_message = 'Try adding a charater to your passage'
+      end
+    end
     #Create a new story text model for the passage
     if @valid                                                   #If the passage has not been rejected
       respond_to do |format|                                    #Add it to the story
-        if(@story_text.save)
-          format.html{redirect_to story_texts_path, notice: 'Story text was successfully created.'}
-          format.json{render action: 'show', status: :created, location: @story_text}
+        if(@first_story_text.save)
+          format.html{redirect_to first_story_texts_path, notice: 'Story text was successfully created.'}
+          format.json{render action: 'show', status: :created, location: @first_story_text}
+          $update_post_time = true
         else
           format.html{render action: 'new'}
-          format.json{render json: @story_text.errors, status: :unprocessable_entity}
+          format.json{render json: @first_story_text.errors, status: :unprocessable_entity}
         end
       end
     else
-      redirect_to story_texts_path                              #Otherwise return
+      redirect_to first_story_texts_path                              #Otherwise return
     end
   end
   
   #Repost an instance of a story text after it has been updated
   def update
-    @story_text = StoryText.find(params[:id])
+    @first_story_text = FirstStoryText.find(params[:id])
     #
     respond_to do |format|
-      if @story_text.update(params.require(:story_text, :passage))
-        format.html{redirect_to @story_text, notice: 'Story text was successfully updated.'}
+      if @first_story_text.update(params.require(:first_story_text, :passage))
+        format.html{redirect_to @first_story_text, notice: 'Story text was successfully updated.'}
         format.json{head :no_content}
       else
         format.html{render action: 'edit'}
-        format.json{render json: @story_text.errors, status: :unprocessable_entity}
+        format.json{render json: @first_story_text.errors, status: :unprocessable_entity}
       end
     end
   end
+  
   #Delete a text entry
   def destroy
-    @story_text = StoryText.last
-    @story_text.destroy
+    @first_story_text = FirstStoryText.last
+    @first_story_text.destroy
+    $update_delete_time = true
     respond_to do |format|
-      format.html { redirect_to story_texts_url }
+      format.html { redirect_to first_story_texts_url }
       format.json { head :no_content }
     end
   end

@@ -1,0 +1,166 @@
+<!-- Website Title -->
+<div class='title'>
+  <strong>Novel Endings</strong>
+</div>
+<% $current_story  = 'third' %>
+
+<!-- Variables for Embedded Ruby -->
+<% line_length = 40 %>        <!-- Indicates the number of characters between line breaks -->
+<% full_story = "" %>         <!-- This will contain the full text of the story -->
+<% page = 1 %>                <!-- Specifies the current page number -->
+<% line = 0 %>                <!-- Specifies the current line number -->
+<% position = 0 %>            <!-- Specifies the character position within a line -->
+<% top = 0 %>                 <!-- Stores the vertical position for each character -->
+<% left = 0 %>                <!-- Stores the horizontal position for each character -->
+<% angle = 0 %>               <!-- Stores the rotation angle for each character -->
+<% line_offset = 0 %>         <!-- Stores the position at which to add each line break -->
+<% story_array = [] %>        <!-- Stores each individual character of the text in an array -->
+<% author_array = [] %>       <!-- Stores a list of authors that have posted to the story -->
+<% post_delay = 3600 %>       <!-- Time in seconds between consecutive posts 3600-->
+<% delete_delay = 86400 %>    <!-- Time in seconds between consecutive deletes 86400-->
+
+<!-- Adds the introduction page to the beginning of the story -->
+<% full_story = full_story+@third_story_texts.first.passage %>
+
+<!-- Adds a list of authors after the introduction -->
+<% (line_length+2).times do %>                             <!-- Skip the first line on the page -->
+  <% full_story += ' ' %>
+<% end %>
+<% full_story = full_story+'Authors:' %>                   <!-- Author list header -->
+<% line_length.times do %>                                 <!-- Start the list on the next line -->
+  <% full_story += ' ' %>
+<% end %>
+<% @third_story_texts.each do |story| %>                   <!-- For each passage in the story -->
+    <% author_array.push story.author %>                   <!-- Add the author of that passage to the list -->
+<% end %>
+<% author_array.uniq! %>                                   <!-- Ensure that each name appears only once -->
+<% author_array.each do |author| %>                        <!-- For each author in the list -->
+  <% full_story = full_story+author %>                     <!-- Add their name to the page -->
+  <% (line_length-author.length).times do %>               <!-- Put each name on its own line -->
+    <% full_story += ' ' %>                                <!-- By filling the remaining space in each line -->
+  <% end %>
+<% end %>
+<% if author_array.length <= 18 %>                         <!-- If the author list can fit on one page -->
+  <% ((18-author_array.length)*line_length-author_array.last.length).times do %>
+    <% full_story += ' ' %>                                <!-- Fill the rest of the author page -->
+  <% end %>
+<% else %>                                                 <!-- If the author list can't fit on one page -->
+  <% ((author_array.length-18)%20)*line_length.times do %>
+    <% full_story += ' ' %>                                <!-- Fill the remaining space on the last page -->
+  <% end %>
+<% end %>
+
+<!-- Combines all passages and adds them into the full story variable -->
+<% (@third_story_texts.length-1).times do |i| %>
+    <% full_story = full_story+@third_story_texts[i+1].passage+' ' %>
+<% end %>
+
+<!-- Modifies and formats the story texts displays the resulting text -->
+<div class='story'>
+  <%= image_tag('open_pages_wShading2.png') %>
+  <% story_array = full_story.split('') %>                 <!-- Splits the string into an array of characters -->
+  <% line_offset+=line_length %>                           <!-- Sets the position for the first line break -->
+  <% while line_offset < story_array.length do %>          <!-- For each line of text -->
+      <% while story_array[line_offset] != ' ' do %>       <!-- Make sure the break is inseted between words -->
+        <% line_offset -= 1 %>
+      <% end %>
+      <% story_array[line_offset] = '<br/>' %>             <!-- Inserts a line break at the end of the line -->
+      <% line_offset += line_length %>                     <!-- Set up for the next line -->
+  <% end %>
+  <% story_array.length.times do |letter| %>               <!-- For each character in the text -->
+    <% if story_array[letter] == ' ' %>                    <!-- Replace every space character -->
+      <% story_array[letter] = '&nbsp' %>                  <!-- With nbsp since the space doesn't show up -->
+    <% end %>
+    <% position += 1 %>                                    <!-- Increment the character position counter -->
+    <% if story_array[letter] == '<br/>' %>                <!-- If the end of a line is reached -->
+      <% line += 1 %>                                      <!-- Start a new line -->
+      <% if line == 20 %>                                  <!-- If the end of a page is reached -->
+        <% page += 1 %>                                    <!-- Start a new page -->
+        <% line = 0 %>                                     <!-- Reset the line counter -->
+      <% end %>
+      <% position = 0 %>                                   <!-- Reset the character position counter -->
+    <% end %>
+    <% if page == $page %>                                 <!-- If the page counter matches the left page -->
+      <% left = position*9.5+52 %>                         <!-- Calculate left page style attributes -->
+      <% top = line*20+15*Math.sin(position*(2*Math::PI/line_length))+50 %>
+      <% angle = 12*Math.cos(position*(2*Math::PI/line_length)) %>
+    <% elsif page == $page+1 %>                            <!-- If the page counter matches the right page -->
+      <% left = position*9.5+447 %>                        <!-- Calculate right page style attributes -->
+      <% top = line*20+15*Math.sin(position*(2*Math::PI/line_length)+Math::PI)+50 %>
+      <% angle = 12*Math.cos(position*(2*Math::PI/line_length)+Math::PI) %>
+    <% end %>
+    <!-- Each charater is added to a divider and displayed as story text here -->
+    <% if page == $page || page == $page+1 %>              <!-- If the character is on a selected page -->
+      <div class='letter' style='top:<%= top %>px; left:<%= left %>px; 
+      -webkit-transform: rotate(<%= angle %>deg); 
+      -ms-transform: rotate(<%= angle %>deg; 
+      -transform: rotate(<%= angle %>deg)'>
+        <%= raw story_array[letter] %>                     <!-- Add the character to the divider -->
+      </div>
+    <% end %>
+  <% end %>
+  
+  <!-- Display page numbers -->
+  <div class='letter page-left'>
+    <%= $page %>
+  </div>
+  <div class='letter page-right'>
+    <%= $page+1 %>
+  </div>
+  
+  <!-- Invisible links and arrows for changing pages -->
+  <%= link_to '', third_story_texts_path(change_page: 'next'), method: :get, :class => 'next' %>
+  <%= link_to '', third_story_texts_path(change_page: 'previous'), method: :get, :class => 'previous' %>
+  <%= link_to '<<', third_story_texts_path(change_page: 'first'), method: :get, :class => 'first' %>
+  <%= link_to '>>', third_story_texts_path(change_page: (page+page%2-1).to_s), method: :get, :class => 'last' %>
+  
+  <!-- Buttons and text area for adding a passage or removing the last entry -->
+  <% if current_user %>                                    <!-- Only show the following if a user logs in -->
+    <!-- Adds a form for contributing to the story text -->
+    <div class='passage'>                                  <!-- Display message above text field -->
+      <%= @error_message.inspect[1...@error_message.inspect.length-1] %>
+      <%= form_for @third_story_text do |f| %>             <!-- Add a form for writing a passage -->
+        <% if @third_story_text.errors.any? %>
+          <div id='error_explanation'>
+            <h2><%= pluralize(@third_story_text.errors.count, 'error') %> prohibited this user from being saved:</h2>
+            <ul>
+            <% @third_story_text.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+            </ul>
+          </div>
+        <% end %>
+        <div class='field'>
+          <%= f.text_area :passage, cols: 38, rows: 5 %>   <!-- Add a text field -->
+        </div>
+    </div>
+    <div class='submit'>                                   <!-- Only allow a user to submit a passage -->
+        <% if current_user.third_post_timer %>             <!-- After a minimum time limit between posts -->
+          <% if current_user.third_post_timer < Time.now.to_i-post_delay %>
+            <%= f.submit '    Submit Text    ', :class =>'link-text' %>
+          <% end %>                                        <!-- Add a submit button -->
+        <% else %>
+          <%= f.submit '    Submit Text    ', :class =>'link-text' %>
+        <% end %>
+    </div>
+      <% end %>
+    <div class='submit'>                                   <!-- Allow a user to switch two another story -->
+      <% if current_user.third_post_timer %>               <!-- While waiting for the post timer -->
+        <% if current_user.third_post_timer >= Time.now.to_i-post_delay %>
+          <%= button_to 'Edit Another Story', fourth_story_texts_path, method: :get, :class =>'link-text' %>
+        <% end %>
+      <% end %>  
+    </div>
+    <div class='delete'>                                   <!-- Add a minimum time limit between deletes -->
+      <% if @third_story_texts.length > 1 %>               <!-- Make sure there is a passage to remove -->
+        <% if current_user.delete_timer %>                 <!-- Before trying to remove one --> 
+          <% if current_user.delete_timer < Time.now.to_i-delete_delay %>
+            <%= button_to 'Remove last entry', @third_story_text, method: :delete, :class =>'link-text' %>
+          <% end %>
+        <% else %>
+          <%= button_to 'Remove last entry', @third_story_text, method: :delete, :class =>'link-text' %>
+        <% end %>      
+      <% end %>
+    </div>  
+  <% end %>   
+</div>
